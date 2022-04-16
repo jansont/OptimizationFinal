@@ -74,20 +74,18 @@ def steepest_descent(x0,
         #determine step size
         if step_size == 'armijo':
             step_size = armijo(x, cost_function, gradient_function, gradient)
-        elif isinstance(step_size, (int, float)):
-            continue
-        else: 
+        elif not isinstance(step_size, (int, float)):
             raise ValueError('step size should be float, int or "armijo"')
         
         # move to a new x by moving from the original x in the negative
         # direction of the gradient according to a given step size
         x = x - step_size*gradient
-        minimum = cost_function(x)
+        minimum = cost_function(x).item()
 
         #result tracking
         i += 1
         if log and i % 1e4 == 0: 
-            print(f'x = {x}, V(x) = {minimum:.5f}')
+            print(f'x = {x.flatten()}, V(x) = {minimum:.5f}')
         if track_history: 
             x_history.append(x), V_history.append(minimum)
 
@@ -164,20 +162,18 @@ def conjugate_gradient(x0,
         #determine step size
         if step_size == 'armijo':
             step_size = armijo(x, cost_function, gradient_function, prev_gradient)
-        elif isinstance(step_size, (int, float)):
-            continue
-        else: 
+        elif not isinstance(step_size, (int, float)):
             raise ValueError('step size should be float, int or "armijo"')
 
         #conjugate_gradient_algorithm
         x1 = x0 + step_size * search_direction
         next_gradient = gradient_function(x1)
-        beta = (next_gradient - prev_gradient) @  next_gradient
-        beta /= prev_gradient @ prev_gradient.transpose()
+        beta = (next_gradient - prev_gradient).T @  next_gradient
+        beta /= prev_gradient.T @ prev_gradient
         search_direction = -1*next_gradient + beta * search_direction
         prev_gradient = next_gradient
         x0 = x1
-        minimum = cost_function(x0)
+        minimum = cost_function(x0).item()
 
         #track results
         if log and i%1e4 == 0: 
@@ -321,7 +317,7 @@ def secant(x0,
 
     while True:
         gradient_x0 = gradient_function(x0)
-        s = -np.matmul(H,gradient_x0.reshape(-1,1))
+        s = -(H @ gradient_x0)
 
         #determine step size
         if step_size == 'armijo':
@@ -332,20 +328,19 @@ def secant(x0,
             raise ValueError('step size should be float, int or "armijo"')
         
         
-        x1 = x0 + w*s.flatten()
+        x1 = x0 + w*s
         gradient_x1 = gradient_function(x1)
 
         if norm(gradient_x1) < threshold or j > max_iter:
             break
 
-        dx = (x1-x0).reshape(-1,1)
-        dg = (gradient_x1-gradient_x0).reshape(-1,1)
-        H = H + np.matmul(dx,dx.reshape(1,-1))/np.dot(dx.reshape(1,-1),dg) 
-        H -= np.matmul(np.matmul(H,dg),(np.matmul(H,dg)).reshape(1,-1))/np.dot(dg.reshape(1,-1),np.matmul(H,dg))
+        dx = x1-x0
+        dg = gradient_x1-gradient_x0
+        H = H + np.matmul(dx,dx.T)/np.matmul(dx.T,dg) - np.matmul(np.matmul(H,dg),(np.matmul(H,dg)).T)/np.matmul(dg.T,np.matmul(H,dg))
         
         j += 1
         x0 = x1
-        minimum = cost_function(x0)
+        minimum = cost_function(x0).item()
         x_history.append(x0), V_history.append(minimum)
 
         #track results
