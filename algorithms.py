@@ -247,7 +247,11 @@ class Finite_Difference:
         else: 
             raise ValueError("Method must be 'central' or 'forward'")
 
+def cone_condition(g, s, theta=89):
+    cos_phi = (-s.T @ g) / (np.linalg.norm(s) * np.linalg.norm(g))
+    cos_theta = np.cos(theta * 2 * np.pi / 360)
 
+    return cos_phi > cos_theta
 
 def secant(x0,
             cost_function,
@@ -302,6 +306,7 @@ def secant(x0,
         V_history :: list
             List of costs visisted. (if track_history = True)
     '''
+
     if H == None:
         H = np.eye(len(x0))
     if H.shape[0] != H.shape[1] != len(x0):
@@ -318,6 +323,10 @@ def secant(x0,
     while True:
         gradient_x0 = gradient_function(x0)
         s = -(H @ gradient_x0)
+
+        if not cone_condition(gradient_x0, s):
+            j = 0
+            s = -gradient_function(x0)
 
         #determine step size
         if step_size == 'armijo':
@@ -411,3 +420,26 @@ def armijo(x,
     if log:
         print(f'p={p}, q={q}, w={w}')
     return w
+
+def penalty_fn(x0, cost_function, gradient_function, ecp=None, icp=None, threshold=1e-6):
+    def phi(cost, sigma, x, ecp, icp):
+        if ecp is not None:
+            cost = cost + 0.5*sigma*norm(ecp(x))**2
+        if icp is not None:
+            cost = cost + 0.5*sigma*norm(np.minimum(icp(x),np.zeros_like(icp(x))))**2
+        return cost
+    
+    def cost_norm(x):
+        cost = 0
+        if ecp is not None:
+            cost = cost + norm(ecp(x))**2
+        if icp is not None:
+            cost = cost + norm(np.minimum(icp(x),np.zeros_like(icp(x))))**2
+        return np.sqrt(cost)
+
+    sigma = 1
+    x = x0
+
+    while cost_norm(x) > threshold:
+        x = gradient_descent(x, phi(cost_function(x), sigma, x, ecp, icp), gradient_function, threshold, log=False)
+    return x

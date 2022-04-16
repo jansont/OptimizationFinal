@@ -57,24 +57,24 @@ def V_c(x):
     x1 = x[0]
     x2 = x[1]
     a = np.array([1])
-    b = np.array([1, 2])
+    b = np.array([[1], [2]])
     C = np.array([[12, 3], 
                   [3, 10]])
-    return a + b@x + 0.5*(x.T @ (C @ x)) + 10*np.ln(1+x1**4)*np.sin(100*x1) + 10*np.ln(1+x2**4)*np.cos(100*x2)
+    return a + b.T@x + 0.5*(x.T @ (C @ x)) + 10*np.log(1+x1**4)*np.sin(100*x1) + 10*np.log(1+x2**4)*np.cos(100*x2)
 
 def gradV_c(x):
     x1 = x[0]
     x2 = x[1]
     a = np.array([1])
-    b = np.array([1, 2])
+    b = np.array([[1], [2]])
     C = np.array([[12, 3], 
                   [3, 10]])
-    dx1 = (b + C @ x)[0] + 40*(25*np.ln(1+x1**4)*np.cos(100*x)+(x1**3 * np.sin(100*x)/(1+x1**4)))
-    dx2 = (b + C @ x)[1] + 40*(-25*np.ln(1+x2**4)*np.sin(100*x)+(x2**3 * np.cos(100*x)/(1+x2**4)))
+    dx1 = (b + C @ x)[0] + 40*(25*np.log(1+x1**4)*np.cos(100*x1)+(x1**3 * np.sin(100*x1)/(1+x1**4)))
+    dx2 = (b + C @ x)[1] + 40*(-25*np.log(1+x2**4)*np.sin(100*x2)+(x2**3 * np.cos(100*x2)/(1+x2**4)))
     return np.array([dx1,dx2])
 #_________________________________________________
 
-#-_____________CONTRAINED PROBLEM 1___________________
+#-_____________CONSTRAINED PROBLEM 1___________________
 def V_1(x):
     return np.abs(x[0]-1) + np.abs(x[1]-2)
 
@@ -85,7 +85,7 @@ def h2_1(x):
     return x[0]**2 + x[1]**2 - 1
 #_________________________________________________
 
-#-_____________CONTRAINED PROBLEM 2___________________
+#-_____________CONSTRAINED PROBLEM 2___________________
 def V_2(x):
     return -x[0]*x[1]
 
@@ -96,7 +96,7 @@ def h2_2(x):
     return x[0]**2 + x[1]**2
 #_________________________________________________
 
-#-_____________CONTRAINED PROBLEM 3___________________
+#-_____________CONSTRAINED PROBLEM 3___________________
 def V_3(x):
     return np.ln(x[0]) - x[1]
 
