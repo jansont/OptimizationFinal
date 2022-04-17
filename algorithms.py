@@ -1,6 +1,7 @@
 from multiprocessing.sharedctypes import Value
 import numpy as np
 from numpy.linalg import norm, eig
+from functools import partial
 
 
 
@@ -211,9 +212,9 @@ class Finite_Difference:
                 Gradient estimate at x. Shape (n,)
         '''
         gradient = np.zeros_like(x)
+        e = np.eye(len(x))
         for i in range(x.shape[0]):
-            e = np.eye(1,x.shape[0],i).squeeze()
-            grad = self.function(x + e*self.h) - self.function(x - e*self.h)
+            grad = self.function(x + e[i].reshape(-1,1)*self.h) - self.function(x - e[i].reshape(-1,1)*self.h)
             grad /= 2*self.h
             gradient[i] = grad
         return gradient
@@ -229,9 +230,9 @@ class Finite_Difference:
                 Gradient estimate at x. Shape (n,)
         '''
         gradient = np.zeros_like(x)
+        e = np.eye(len(x))
         for i in range(x.shape[0]):
-            e = np.eye(1,x.shape[0],i).squeeze()
-            grad = self.function(x + e*self.h) - self.function(x)
+            grad = self.function(x + e[i].reshape(-1,1)*self.h) - self.function(x)
             grad /= self.h
             gradient[i] = grad
         return gradient  
@@ -421,12 +422,26 @@ def armijo(x,
         print(f'p={p}, q={q}, w={w}')
     return w
 
-def penalty_fn(x0, cost_function, gradient_function, ecp=None, icp=None, threshold=1e-6):
-    def phi(cost, sigma, x, ecp, icp):
+def penalty_fn(x0,
+               cost_function,
+               gradient_function,
+               step_size='armijo',
+               ecp=None,
+               icp=None,
+               threshold=1e-6,
+               log = False, 
+               h = 1e-8, 
+               max_iter = 1e12, 
+               fd_method = 'central', 
+               track_history = False):
+    
+    def phi(cost_function, sigma, ecp, icp, x):
+        cost = cost_function(x)
         if ecp is not None:
             cost = cost + 0.5*sigma*norm(ecp(x))**2
         if icp is not None:
-            cost = cost + 0.5*sigma*norm(np.minimum(icp(x),np.zeros_like(icp(x))))**2
+            for eq in icp:
+                cost += 0.5*sigma*norm(np.minimum(eq(x),np.zeros_like(eq(x))))**2
         return cost
     
     def cost_norm(x):
@@ -434,12 +449,26 @@ def penalty_fn(x0, cost_function, gradient_function, ecp=None, icp=None, thresho
         if ecp is not None:
             cost = cost + norm(ecp(x))**2
         if icp is not None:
-            cost = cost + norm(np.minimum(icp(x),np.zeros_like(icp(x))))**2
+            for eq in icp:
+                cost += norm(np.minimum(eq(x),np.zeros_like(eq(x))))**2
         return np.sqrt(cost)
 
     sigma = 1
     x = x0
 
     while cost_norm(x) > threshold:
-        x = gradient_descent(x, phi(cost_function(x), sigma, x, ecp, icp), gradient_function, threshold, log=False)
-    return x
+        x, _ = steepest_descent(x0,
+                             partial(phi, cost_function, sigma, ecp, icp),
+                             gradient_function,
+                             step_size,
+                             1e-3,
+                             log,
+                             h,
+                             max_iter,
+                             fd_method,
+                             track_history)
+        sigma *= 10
+        if sigma >= 1e5:
+            break
+    return x, cost_function(x).item()
+
