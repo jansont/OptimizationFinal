@@ -462,6 +462,7 @@ def penalty_fn(x0,
                step_size='armijo',
                ecp=None,
                icp=None,
+               sigma_max=1e5,
                threshold=1e-6,
                log = False, 
                h = 1e-8, 
@@ -491,6 +492,7 @@ def penalty_fn(x0,
     x = x0
 
     while cost_norm(x) > threshold:
+        # print(sigma)
         x, _ = steepest_descent(x0,
                              partial(phi, cost_function, sigma, ecp, icp),
                              gradient_function,
@@ -502,7 +504,7 @@ def penalty_fn(x0,
                              fd_method,
                              track_history)
         sigma *= 10
-        if sigma >= 1e5:
+        if sigma >= sigma_max:
             break
     return x, cost_function(x).item()
 
