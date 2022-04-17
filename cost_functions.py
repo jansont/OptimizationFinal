@@ -4,6 +4,8 @@ from numpy.linalg import norm, eig
 #-_____________COST FUNCTION A___________________
 #COST FUNCTION A
 def V_a(x):
+    if x.shape[0] != 6:
+        raise ValueError('X must have dimension 6.')
     a = np.array([5])
     b = np.array([[1], [4], [5], [4], [2], [1]])
     C = [[9, 1, 7, 5, 4, 7], 
@@ -11,18 +13,20 @@ def V_a(x):
         [7, 4, 13, 5, 0, 7], 
         [5, 2, 5, 17, 1, 9], 
         [4, 7, 0, 1, 21, 15], 
-        [7, 5, 7, 9, 5, 27]]
+        [7, 5, 7, 9, 15, 27]]
     C = np.array(C)
     return a + b.T @ x + x.T @ (C @ x)
 
 def gradV_a(x):
+    if x.shape[0] != 6:
+        raise ValueError('X must have dimension 6.')
     b = np.array([[1], [4], [5], [4], [2], [1]])
     C = [[9, 1, 7, 5, 4, 7], 
         [1, 11, 4, 2, 7, 5], 
         [7, 4, 13, 5, 0, 7], 
         [5, 2, 5, 17, 1, 9], 
         [4, 7, 0, 1, 21, 15], 
-        [7, 5, 7, 9, 5, 27]]
+        [7, 5, 7, 9, 15, 27]]
     C = np.array(C)
     return b + 2 * C @ x
 #_________________________________________________
@@ -30,16 +34,17 @@ def gradV_a(x):
 
 #-_____________COST FUNCTION B___________________
 def V_b(x):
-    x1 = x[0]
-    x2 = x[1]
-
+    if x.shape[0] != 2:
+        raise ValueError('X must have dimension 2.')
+    x1, x2 = x[0], x[1]
     num = ((x1**2 + 1)*(2*x2**2 + 1))**0.5
     den = x1**2 + x2**2 + 0.5
-    return -num / den
+    return - num / den
 
 def gradV_b(x):
-    x1 = x[0]
-    x2 = x[1]
+    if x.shape[0] != 2:
+        raise ValueError('X must have dimension 2.')
+    x1, x2 = x[0],x[1]
 
     num = (-x1**3 + x1*x2**2 - 1.5*x1)*(2*x2**2+1)**0.5
     den = (x1**2 + x2**2 + 0.5)**2 * (x1**2 + 1)**0.5
@@ -106,3 +111,4 @@ def h1_3(x):
 def h2_3(x):
     return x[0]**2 + x[1]**2 - 4
 #_________________________________________________
+

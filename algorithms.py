@@ -9,10 +9,12 @@ def steepest_descent(x0,
                      cost_function,
                      gradient_function,
                      step_size = 'armijo',
-                     threshold = 1e-8, 
+                     threshold = 1e-4, 
                      log = False, 
                      h = 1e-8, 
-                     max_iter = 1e12, 
+                     max_iter = 1e6, 
+                     gamma = 1.5, 
+                     r = 0.8, 
                      fd_method = 'central', 
                      track_history = False):
     '''
@@ -31,14 +33,18 @@ def steepest_descent(x0,
             Default: 'armijo
         threshold :: float
             Threshold at which to stop minimization. Values 
-            should be close to 0. Default: 1e-8
+            should be close to 0. Default: 1e-4
         log :: bool
             True to log optimization progress. Default: False
         h :: float
             Parameter for finite difference estimation. 
             Default 1e-8
         max_iter :: int
-            Maximum optimization iterations. Default: 1e12
+            Maximum optimization iterations. Default: 1e6
+        gamma :: float
+            Gamma parameter for armijo. Default is 1.5. 
+        r :: float
+            r parameter for armijo. Default is 0.8. 
         fd_method :: string
             Method for finite difference estimation. 
             Options: 'central', 'forward'
@@ -65,28 +71,32 @@ def steepest_descent(x0,
     i = 0
     x = x0
     gradient = gradient_function(x)
+    minimum = cost_function(x)
 
     #iterate until near zero gradient or max iterations reached
     while norm(gradient) >= threshold and i <= max_iter: 
 
         #update gradient
         gradient = gradient_function(x)
+        search_dir = -1*gradient
 
-        #determine step size
-        if step_size == 'armijo':
-            step_size = armijo(x, cost_function, gradient_function, gradient)
-        elif not isinstance(step_size, (int, float)):
-            raise ValueError('step size should be float, int or "armijo"')
+    #determine step size
+        if step_size == 'armijo':                      
+            w = armijo(x, cost_function, gradient, search_dir=search_dir, gamma = gamma, r = r, log=False)
+        elif isinstance(step_size, (int, float)):
+            w = step_size
+        else: 
+            raise TypeError('step size should be float, int or "armijo"') 
         
         # move to a new x by moving from the original x in the negative
         # direction of the gradient according to a given step size
-        x = x - step_size*gradient
+        x = x + w*search_dir
         minimum = cost_function(x).item()
 
         #result tracking
         i += 1
         if log and i % 1e4 == 0: 
-            print(f'x = {x.flatten()}, V(x) = {minimum:.5f}')
+            print(f'x = {x}, V(x) = {minimum:.5f}')
         if track_history: 
             x_history.append(x), V_history.append(minimum)
 
@@ -106,7 +116,9 @@ def conjugate_gradient(x0,
                      threshold = 1e-8, 
                      log = False, 
                      h = 1e-8, 
-                     max_iter = 1e12, 
+                     max_iter = 1e6, 
+                     gamma = 1.5, 
+                     r = 0.8, 
                      fd_method = 'central', 
                      track_history = False):
     '''
@@ -131,8 +143,12 @@ def conjugate_gradient(x0,
         h :: float
             Parameter for finite difference estimation. 
             Default 1e-8
+        gamma :: float
+            Gamma parameter for armijo. Default is 1.5. 
+        r :: float
+            r parameter for armijo. Default is 0.8. 
         max_iter :: int
-            Maximum optimization iterations. Default: 1e12
+            Maximum optimization iterations. Default: 1e6
         fd_method :: string
             Method for finite difference estimation. 
             Options: 'central', 'forward'
@@ -157,17 +173,26 @@ def conjugate_gradient(x0,
     i = 0
     prev_gradient = gradient_function(x0)
     search_direction = prev_gradient * -1
-
+    minimum = cost_function(x0)
     while norm(prev_gradient) >= threshold and i <= max_iter: 
-        
+
         #determine step size
         if step_size == 'armijo':
-            step_size = armijo(x, cost_function, gradient_function, prev_gradient)
-        elif not isinstance(step_size, (int, float)):
-            raise ValueError('step size should be float, int or "armijo"')
+            w = armijo(x0,
+                    cost_function,
+                    prev_gradient,
+                    search_dir=search_direction,
+                    gamma = gamma,
+                    r = r,
+                    log=False)
+
+        elif isinstance(step_size, (int, float)):
+            w = step_size
+        else: 
+            raise TypeError('step size should be float, int or "armijo"')
 
         #conjugate_gradient_algorithm
-        x1 = x0 + step_size * search_direction
+        x1 = x0 + w * search_direction
         next_gradient = gradient_function(x1)
         beta = (next_gradient - prev_gradient).T @  next_gradient
         beta /= prev_gradient.T @ prev_gradient
@@ -248,6 +273,8 @@ class Finite_Difference:
         else: 
             raise ValueError("Method must be 'central' or 'forward'")
 
+
+
 def cone_condition(g, s, theta=89):
     cos_phi = (-s.T @ g) / (np.linalg.norm(s) * np.linalg.norm(g))
     cos_theta = np.cos(theta * 2 * np.pi / 360)
@@ -262,7 +289,9 @@ def secant(x0,
             threshold = 1e-8, 
             log = False, 
             h = 1e-8, 
-            max_iter = 1e12, 
+            max_iter = 1e6, 
+            gamma = 1.5, 
+            r = 0.8,
             fd_method = 'central', 
             track_history = False):
     '''
@@ -290,8 +319,12 @@ def secant(x0,
         h :: float
             Parameter for finite difference estimation. 
             Default 1e-8
+        gamma :: float
+            Gamma parameter for armijo. Default is 1.5. 
+        r :: float
+            r parameter for armijo. Default is 0.8. 
         max_iter :: int
-            Maximum optimization iterations. Default: 1e12
+            Maximum optimization iterations. Default: 1e6
         fd_method :: string
             Method for finite difference estimation. 
             Options: 'central', 'forward'
@@ -317,10 +350,10 @@ def secant(x0,
     if gradient_function == None: 
         fd = Finite_Difference(cost_function, fd_method, h)
         gradient_function = fd.estimate_gradient
-    
-    j=0
-    x_history, V_history = [], []
 
+    j=0
+    x_history, V_history = [],[]
+    minimum = cost_function(x0)
     while True:
         gradient_x0 = gradient_function(x0)
         s = -(H @ gradient_x0)
@@ -330,17 +363,14 @@ def secant(x0,
             s = -gradient_function(x0)
 
         #determine step size
-        if step_size == 'armijo':
-            w = armijo(x0, cost_function, gradient_x0, search_dir=s.flatten(), gamma=1.5, r=0.8, log=False)
+        if step_size == 'armijo':                      
+            w = armijo(x0, cost_function, gradient_x0, search_dir=s, gamma = gamma, r = r, log=False)
         elif isinstance(step_size, (int, float)):
             w = step_size
         else: 
-            raise ValueError('step size should be float, int or "armijo"')
-        
-        
+            raise TypeError('step size should be float, int or "armijo"') 
         x1 = x0 + w*s
         gradient_x1 = gradient_function(x1)
-
         if norm(gradient_x1) < threshold or j > max_iter:
             break
 
@@ -363,6 +393,7 @@ def secant(x0,
         return x0, minimum, x_history, V_history
     else: 
         return x0, minimum
+
 
 
 
@@ -396,27 +427,30 @@ def armijo(x,
             Optimal step size at x in direction search_dir. 
     '''
     
-    def v_bar(cost_x,grad_x_s,w):
+    def v_bar(w):
         return cost_x + 0.5*w*grad_x_s
 
-    w = 0.1
+    w = 1
     cost_x = cost_function(x)
-    grad_x_s = gradient @ search_dir
+    grad_x_s = gradient.T @ search_dir
     # initialize p
     p = 0
     # propogate forward
-    while cost_function(x + (gamma**p)*search_dir) < v_bar(cost_x, grad_x_s, (gamma**p)): 
+    w = gamma**p
+    while cost_function(x + w*search_dir) < v_bar(w): 
         w = gamma**p
         # increment p
         p += 1
     # initialize q
     q = 0
     # propogate backwards
-    while cost_function(x + (r**q * gamma**p)*search_dir) > v_bar(cost_x, grad_x_s, r**q * gamma**p): 
-        # consider step size w
-        w = r**q * gamma**p
+    w = r**q * gamma**p
+    while cost_function(x + w*search_dir) > v_bar(w): 
         # increment q
         q += 1
+        # consider step size w
+        w = r**q * gamma**p
+
     # return step size
     if log:
         print(f'p={p}, q={q}, w={w}')
