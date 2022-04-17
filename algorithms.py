@@ -585,12 +585,38 @@ def barrier_fn(x0,
 
 def augmented_lagrangian(x0, 
                          cost_function, 
-                         equality_constraints = None, 
-                         inequality_constraints = None,
+                         equality_constraints = [], 
+                         inequality_constraints = [],
                          threshold = 1e-3, 
-                         sigma_max = 1e12, 
-                         track_history = False, 
-                         log = False):
+                         log = False,
+                         track_history = False,):
+    '''
+    Args: 
+        x0 :: np.array
+            Initial point of minization. Shape (n,)
+        cost_function :: Python function
+            Cost function to minimize. Rn -> R. 
+        equality_constraints :: list of functions
+            List of constraint equalities. 
+        inequality constraints :: list of functions
+            List of constraint inequalities. 
+        threshold :: float
+            Threshold at which to stop minimization. Values 
+        log :: bool
+            True to log optimization progress. Default: False
+            Parameter for finite difference estimation. 
+        track_history :: bool
+            True to track points visited and corresponding cost. 
+    Returns: 
+        x :: np.array
+            Point at which minimization is reached. Shape (n,)
+        minimum :: float
+            Value of cost function at optimizer. 
+        x_history :: list
+            List of points visisted. (if track_history = True)
+        V_history :: list
+            List of costs visisted. (if track_history = True)
+    '''
     class P:
         def __init__(self, lambd, sigma):
             self.lambd = lambd
@@ -629,7 +655,7 @@ def augmented_lagrangian(x0,
     minimum = cost_function(x)
     x_history.append(x), V_history.append(minimum)
     j = 0
-    while norm(c) > threshold and all(sigma < sigma_max): 
+    while norm(c) > threshold and all(sigma < 1e12): 
         p = P(lambd, sigma)
         x,_ = steepest_descent(x,
                                p.phi,
@@ -677,6 +703,46 @@ def lagrange_newton(x0,
                     fd_method = 'forward',
                     log = False,
                     track_history = False):
+    '''
+    Lagrange Newton Algorith for constrainted optimization
+    Args: 
+        x0 :: np.array
+            Initial point of minization. Shape (n,)
+        cost_function :: Python function
+            Cost function to minimize. Rn -> R. 
+        gradient_function :: Python function, or None
+            Gradient of cost_function. Rn -> Rn
+            If None, finite difference estimation of gradient is used. 
+        hessian :: np.array (shape: len(x0) x len(x0))
+            Hessian of cost function. 
+            if None, Finite difference hessian is used
+        equality_constraints :: list of functions
+            List of constraint equalities. 
+        inequality constraints :: list of functions
+            List of constraint inequalities. 
+        threshold :: float
+            Threshold at which to stop minimization. Values 
+        h :: float
+            should be close to 0. Default: 1e-8
+        fd_method :: string
+            Method for finite difference estimation. 
+            Options: 'central', 'forward'
+        log :: bool
+            True to log optimization progress. Default: False
+            Parameter for finite difference estimation. 
+        track_history :: bool
+            True to track points visited and corresponding cost. 
+    Returns: 
+        x :: np.array
+            Point at which minimization is reached. Shape (n,)
+        minimum :: float
+            Value of cost function at optimizer. 
+        x_history :: list
+            List of points visisted. (if track_history = True)
+        V_history :: list
+            List of costs visisted. (if track_history = True)
+    '''
+
 
     fd = Finite_Difference(cost_function, fd_method, h)
     if hessian is None: 
