@@ -79,6 +79,7 @@ def steepest_descent(x0,
         gradient = gradient_function(x)
         search_dir = -1*gradient
 
+<<<<<<< HEAD
     #determine step size
         if step_size == 'armijo':                      
             w = armijo(x, cost_function, gradient, search_dir=search_dir.flatten(), gamma = gamma, r = r, log=False)
@@ -91,11 +92,23 @@ def steepest_descent(x0,
         # direction of the gradient according to a given step size
         x = x + w*search_dir.flatten()
         minimum = cost_function(x)
+=======
+        #determine step size
+        if step_size == 'armijo':
+            step_size = armijo(x, cost_function, gradient_function, gradient)
+        elif not isinstance(step_size, (int, float)):
+            raise ValueError('step size should be float, int or "armijo"')
+        
+        # move to a new x by moving from the original x in the negative
+        # direction of the gradient according to a given step size
+        x = x - step_size*gradient
+        minimum = cost_function(x).item()
+>>>>>>> 0f436ef1e03461fc829ff9a1ed49b03526e2a206
 
         #result tracking
         i += 1
         if log and i % 1e4 == 0: 
-            print(f'x = {x}, V(x) = {minimum:.5f}')
+            print(f'x = {x.flatten()}, V(x) = {minimum:.5f}')
         if track_history: 
             x_history.append(x), V_history.append(minimum)
 
@@ -177,6 +190,7 @@ def conjugate_gradient(x0,
 
         #determine step size
         if step_size == 'armijo':
+<<<<<<< HEAD
             w = armijo(x0,
                     cost_function,
                     prev_gradient,
@@ -189,16 +203,25 @@ def conjugate_gradient(x0,
             w = step_size
         else: 
             raise TypeError('step size should be float, int or "armijo"')
+=======
+            step_size = armijo(x, cost_function, gradient_function, prev_gradient)
+        elif not isinstance(step_size, (int, float)):
+            raise ValueError('step size should be float, int or "armijo"')
+>>>>>>> 0f436ef1e03461fc829ff9a1ed49b03526e2a206
 
         #conjugate_gradient_algorithm
         x1 = x0 + w * search_direction
         next_gradient = gradient_function(x1)
-        beta = (next_gradient - prev_gradient) @  next_gradient
-        beta /= prev_gradient @ prev_gradient.transpose()
+        beta = (next_gradient - prev_gradient).T @  next_gradient
+        beta /= prev_gradient.T @ prev_gradient
         search_direction = -1*next_gradient + beta * search_direction
         prev_gradient = next_gradient
         x0 = x1
+<<<<<<< HEAD
         minimum = cost_function(x1)
+=======
+        minimum = cost_function(x0).item()
+>>>>>>> 0f436ef1e03461fc829ff9a1ed49b03526e2a206
 
         #track results
         if log and i%1e4 == 0: 
@@ -209,7 +232,78 @@ def conjugate_gradient(x0,
     if track_history:
         return x1, minimum, x_history, V_history
     else: 
+<<<<<<< HEAD
         return x1, minimum
+=======
+        return x0, minimum
+
+
+
+
+class Finite_Difference:
+    def __init__(self, function, method, h = 1e-8):
+        '''
+        Args: 
+            function: cost function Rn -> R
+            h: Default is 1e-8. 
+        '''
+        self.function = function
+        self.h = h
+        self.method = method
+
+    def central_difference(self, x):
+        '''
+        Performs central difference estimate of the gradient. 
+        Args: 
+            x: np.array
+                Point at which to estimate derivative. Shape (n,)
+        Returns: 
+            gradient: np.array
+                Gradient estimate at x. Shape (n,)
+        '''
+        gradient = np.zeros_like(x)
+        for i in range(x.shape[0]):
+            e = np.eye(1,x.shape[0],i).squeeze()
+            grad = self.function(x + e*self.h) - self.function(x - e*self.h)
+            grad /= 2*self.h
+            gradient[i] = grad
+        return gradient
+
+    def forward_difference(self, x):
+        '''
+        Performs forward difference estimate of the gradient. 
+        Args: 
+            x: np.array
+                Point at which to estimate derivative. Shape (n,)
+        Returns: 
+            gradient: np.array
+                Gradient estimate at x. Shape (n,)
+        '''
+        gradient = np.zeros_like(x)
+        for i in range(x.shape[0]):
+            e = np.eye(1,x.shape[0],i).squeeze()
+            grad = self.function(x + e*self.h) - self.function(x)
+            grad /= self.h
+            gradient[i] = grad
+        return gradient  
+
+    def estimate_gradient(self, x):
+        '''
+        Select finite difference method
+        '''
+        if self.method == 'central':
+            return self.central_difference(x)
+        elif self.method == 'forward': 
+            return self.forward_difference(x)
+        else: 
+            raise ValueError("Method must be 'central' or 'forward'")
+
+def cone_condition(g, s, theta=89):
+    cos_phi = (-s.T @ g) / (np.linalg.norm(s) * np.linalg.norm(g))
+    cos_theta = np.cos(theta * 2 * np.pi / 360)
+
+    return cos_phi > cos_theta
+>>>>>>> 0f436ef1e03461fc829ff9a1ed49b03526e2a206
 
 def secant(x0,
             cost_function,
@@ -270,6 +364,7 @@ def secant(x0,
         V_history :: list
             List of costs visisted. (if track_history = True)
     '''
+
     if H == None:
         H = np.eye(len(x0))
     if H.shape[0] != H.shape[1] != len(x0):
@@ -285,19 +380,36 @@ def secant(x0,
     minimum = cost_function(x0)
     while True:
         gradient_x0 = gradient_function(x0)
+<<<<<<< HEAD
         s = -np.matmul(H,gradient_x0.reshape(-1,1))
         
+=======
+        s = -(H @ gradient_x0)
+
+        if not cone_condition(gradient_x0, s):
+            j = 0
+            s = -gradient_function(x0)
+
+>>>>>>> 0f436ef1e03461fc829ff9a1ed49b03526e2a206
         #determine step size
         if step_size == 'armijo':                      
             w = armijo(x0, cost_function, gradient_x0, search_dir=s.flatten(), gamma = gamma, r = r, log=False)
         elif isinstance(step_size, (int, float)):
             w = step_size
         else: 
+<<<<<<< HEAD
             raise TypeError('step size should be float, int or "armijo"') 
         x1 = x0 + w*s.flatten()
+=======
+            raise ValueError('step size should be float, int or "armijo"')
+        
+        
+        x1 = x0 + w*s
+>>>>>>> 0f436ef1e03461fc829ff9a1ed49b03526e2a206
         gradient_x1 = gradient_function(x1)
         if norm(gradient_x1) < threshold or j > max_iter:
             break
+<<<<<<< HEAD
         dx = (x1-x0).reshape(-1,1)
         dg = (gradient_x1-gradient_x0).reshape(-1,1)
         H = H + np.matmul(dx,dx.reshape(1,-1))/np.dot(dx.reshape(1,-1),dg) - np.matmul(np.matmul(H,dg),(np.matmul(H,dg)).reshape(1,-1))/np.dot(dg.reshape(1,-1),np.matmul(H,dg))
@@ -305,6 +417,16 @@ def secant(x0,
         x0 = x1
         minimum  = cost_function(x0)
 
+=======
+
+        dx = x1-x0
+        dg = gradient_x1-gradient_x0
+        H = H + np.matmul(dx,dx.T)/np.matmul(dx.T,dg) - np.matmul(np.matmul(H,dg),(np.matmul(H,dg)).T)/np.matmul(dg.T,np.matmul(H,dg))
+        
+        j += 1
+        x0 = x1
+        minimum = cost_function(x0).item()
+>>>>>>> 0f436ef1e03461fc829ff9a1ed49b03526e2a206
         x_history.append(x0), V_history.append(minimum)
 
         #track results
@@ -440,6 +562,7 @@ def armijo(x,
         print(f'p={p}, q={q}, w={w}')
     return w
 
+<<<<<<< HEAD
 
 # def armijo(x, cost_function, gradient, s, gamma=1.5, mu=0.8):
 #     """Armijo algorithm for computing step size
@@ -478,3 +601,27 @@ def armijo(x,
 #         w = mu**k_m * gamma**k_g
 
 #     return w
+=======
+def penalty_fn(x0, cost_function, gradient_function, ecp=None, icp=None, threshold=1e-6):
+    def phi(cost, sigma, x, ecp, icp):
+        if ecp is not None:
+            cost = cost + 0.5*sigma*norm(ecp(x))**2
+        if icp is not None:
+            cost = cost + 0.5*sigma*norm(np.minimum(icp(x),np.zeros_like(icp(x))))**2
+        return cost
+    
+    def cost_norm(x):
+        cost = 0
+        if ecp is not None:
+            cost = cost + norm(ecp(x))**2
+        if icp is not None:
+            cost = cost + norm(np.minimum(icp(x),np.zeros_like(icp(x))))**2
+        return np.sqrt(cost)
+
+    sigma = 1
+    x = x0
+
+    while cost_norm(x) > threshold:
+        x = gradient_descent(x, phi(cost_function(x), sigma, x, ecp, icp), gradient_function, threshold, log=False)
+    return x
+>>>>>>> 0f436ef1e03461fc829ff9a1ed49b03526e2a206
