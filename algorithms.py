@@ -666,5 +666,97 @@ def augmented_lagrangian(x0,
 
 
 
+def lagrange_newton(x0, 
+                    cost_function, 
+                    gradient_function = None,
+                    hessian = None,
+                    equality_constraints = [], 
+                    inequality_constraints = [],
+                    threshold=1e-8,
+                    h = 1e-8,
+                    fd_method = 'forward',
+                    log = False,
+                    track_history = False):
+
+    fd = Finite_Difference(cost_function, fd_method, h)
+    if hessian is None: 
+        hessian_ = fd.hessian
+    else: 
+        hessian_ = hessian
+    if gradient_function is None:
+        gradV = fd.estimate_gradient
+    else: 
+        gradV = gradient_function
+
+    x_history, V_history = [], []
+
+    num_ec = len(equality_constraints)
+    num_ic = len(inequality_constraints)
+    num_c = num_ec + num_ic
+    lambd = np.zeros((num_c, 1))
+    x = x0
+
+
+    def W(x, lmb):
+        lambda_eq = lmb[:num_ec, :]
+        lambda_iq = lmb[num_ec:num_c, :]
+        hess = hessian_(x)
+        hess_eq = 0
+        for i,ec in enumerate(equality_constraints):
+            hess_eq -=  Finite_Difference(ec, fd_method).hessian(x) * lambda_eq[i] 
+        hess_iq = 0
+        for i,ic in enumerate(inequality_constraints):
+            hess_iq -=  Finite_Difference(ic, fd_method).hessian(x) * lambda_iq[i] 
+        return hess + hess_eq + hess_iq
+
+    def A(x):
+        equality_grads = [Finite_Difference(ec, fd_method).estimate_gradient(x) 
+                                                for ec in equality_constraints]
+        inequality_grads = [Finite_Difference(ic, fd_method).estimate_gradient(x) 
+                                                for ic in inequality_constraints]
+        grads = equality_grads + inequality_grads
+        return np.array(grads).squeeze()
+
+    dx = 1e12
+    while True:
+
+        if norm(dx) <= threshold: 
+            break
+        
+        inequality_cost = [ic(x) for ic in inequality_constraints]
+        equality_cost = [ec(x) for ec in equality_constraints]
+
+        KKT = np.block([[W(x, lambd), -A(x).T],
+                        [-A(x), np.zeros((num_c, num_c))]])
+        if num_c == num_ic:
+            funcs = np.block([[-gradV(x) + A(x) @lambd], 
+                      [np.array(inequality_cost)]])
+        elif num_c == num_ec:
+            funcs = np.block([[-gradV(x) + A(x) @lambd], 
+                    [np.array(equality_cost)]])
+        else:
+            funcs = np.block([[-gradV(x) + A(x) @lambd], 
+                          [np.array(equality_cost)],
+                          [np.array(inequality_cost)]])
+        solution, _, _, _ = np.linalg.lstsq(KKT, funcs, rcond=1e-5)
+        x0 = x
+        x = x + solution[:x.shape[0], :]
+        lambd = lambd + solution[x.shape[0]:, :]
+
+        minimum = cost_function(x)
+        x_history.append(x), V_history.append(minimum)
+        dx = x - x0
+        
+        #track results
+        if log: 
+            print(f'x = {x}, V(x) = {minimum:.5f}')
+    
+    if track_history:
+        return x, minimum, x_history, V_history
+    else: 
+        return x, minimum
+
+    
+
 
 
