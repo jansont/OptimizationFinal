@@ -20,7 +20,7 @@ if __name__ == '__main__':
     
     #____________PROBLEM A________________________
 
-    print('\n---- TESTING PROBELM A ----\n')
+    print('\n---- TESTING PROBLEM A ----\n')
     
     x0 = np.zeros((6,1))
 
@@ -65,7 +65,7 @@ if __name__ == '__main__':
 
     #____________PROBLEM B________________________
 
-    print('\n---- TESTING PROBELM B ----\n')
+    print('\n---- TESTING PROBLEM B ----\n')
     x0 = np.ones((2,1))
 
     # test steepest descent
@@ -109,7 +109,7 @@ if __name__ == '__main__':
 
     #____________PROBLEM C________________________
 
-    print('\n---- TESTING PROBELM C ----\n')
+    print('\n---- TESTING PROBLEM C ----\n')
     x0 = np.zeros((2,1))
 
     # test steepest descent
@@ -150,3 +150,63 @@ if __name__ == '__main__':
                         fd_method = 'central', 
                         track_history = False)
     print(f'Secant Method:\n x={x.flatten()}, V(x)={minimum:.5f}\n')
+
+    #____________CONSTRAINED PROBLEM 1________________________
+
+    print('\n---- TESTING CONSTRAINED PROBLEM 1 ----\n')
+    x0 = np.array([[0.1],[0.7]])
+
+    # test penalty function
+    x, minimum =  penalty_fn(x0,
+                                V_1,
+                                gradient_function=None,
+                                ecp=h2_1,
+                                icp=[h1_1],
+                                step_size = 1e-4,
+                                threshold = 1e-3, 
+                                log = False, 
+                                h = 1e-5, 
+                                max_iter = 1e5, 
+                                fd_method = 'central', 
+                                track_history = False)
+    print(f'Penalty function:\n x={x.flatten()}, V(x)={minimum:.5f}\n')
+
+    #____________CONSTRAINED PROBLEM 2________________________
+
+    print('\n---- TESTING CONSTRAINED PROBLEM 2 ----\n')
+    x0 = np.array([[1.],[-1.]])
+
+    # test penalty function
+    x, minimum =  penalty_fn(x0,
+                                V_2,
+                                gradient_function=None,
+                                ecp=None,
+                                icp=[h1_2,h2_2],
+                                step_size = 1e-4,
+                                threshold = 1e-3, 
+                                log = False, 
+                                h = 1e-7, 
+                                max_iter = 1e5, 
+                                fd_method = 'central', 
+                                track_history = False)
+    print(f'Penalty function:\n x={x.flatten()}, V(x)={minimum:.5f}\n')
+
+    #____________CONSTRAINED PROBLEM 3________________________
+
+    # print('\n---- TESTING CONSTRAINED PROBLEM 3 ----\n')
+    # x0 = np.array([[1.],[1.]])
+
+    # # test penalty function
+    # x, minimum =  penalty_fn(x0,
+    #                             V_3,
+    #                             gradient_function=None,
+    #                             ecp=h2_3,
+    #                             icp=[h1_3],
+    #                             step_size = 1e-4,
+    #                             threshold = 1e-3, 
+    #                             log = False, 
+    #                             h = 1e-7, 
+    #                             max_iter = 1e5, 
+    #                             fd_method = 'central', 
+    #                             track_history = False)
+    # print(f'Penalty function:\n x={x.flatten()}, V(x)={minimum:.5f}\n')
