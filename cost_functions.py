@@ -103,7 +103,7 @@ def h2_2(x):
 
 #-_____________CONSTRAINED PROBLEM 3___________________
 def V_3(x):
-    return np.ln(x[0]) - x[1]
+    return np.log(x[0]) - x[1]
 
 def h1_3(x):
     return x[0]-1

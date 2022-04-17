@@ -458,6 +458,10 @@ def armijo(x,
         print(f'p={p}, q={q}, w={w}')
     return w
 
+
+
+
+
 def penalty_fn(x0, cost_function, gradient_function, ecp=None, icp=None, threshold=1e-6):
     def phi(cost, sigma, x, ecp, icp):
         if ecp is not None:
@@ -480,3 +484,88 @@ def penalty_fn(x0, cost_function, gradient_function, ecp=None, icp=None, thresho
     while cost_norm(x) > threshold:
         x = steepest_descent(x, phi(cost_function(x), sigma, x, ecp, icp), gradient_function, threshold, log=False)
     return x
+
+
+
+
+
+
+def augmented_lagrangian(x0, 
+                         cost_function, 
+                         equality_constraints = None, 
+                         inequality_constraints = None,
+                         threshold = 1e-3, 
+                         sigma_max = 1e12, 
+                         track_history = False, 
+                         log = False):
+    class P:
+        def __init__(self, lambd, sigma):
+            self.lambd = lambd
+            self.sigma = sigma
+
+        def phi(self, x):
+            cost = cost_function(x)
+            lambda_eq = lambd[:num_ec , :]
+            lambda_ineq = lambd[num_ec:num_c , :]
+            sigma_eq = sigma[:num_ec , :]
+            sigma_ineq = sigma[num_ec:num_c , :]
+
+            ecs = np.array([ec(x) for ec in equality_constraints])
+            cost = cost - sum(lambda_eq * ecs) + 0.5 * sum(sigma_eq * ecs**2)
+            
+            for i, ineq in enumerate(inequality_constraints):
+                ic = ineq(x)
+                if ic <= lambda_ineq[i] / sigma_ineq[i]:
+                    p_i = np.array([-lambda_ineq[i] * ic + 0.5 * sigma_ineq[i] * ic**2])
+                else: 
+                    p_i = np.array([-0.5 * lambda_ineq[i]**2 / sigma_ineq[i] ])
+                cost = cost + p_i
+
+            return cost
+
+    x_history, V_history = [],[]
+    num_ec = len(equality_constraints)
+    num_ic = len(inequality_constraints)
+    num_c = num_ec + num_ic
+
+    lambd = np.zeros((num_c,1))
+    sigma = np.ones((num_c,1))
+
+    c = 1e12 * sigma
+    x = x0
+    minimum = cost_function(x)
+    x_history.append(x), V_history.append(minimum)
+    j = 0
+    while norm(c) > threshold and all(sigma < sigma_max): 
+        p = P(lambd, sigma)
+        x,_ = steepest_descent(x,
+                               p.phi,
+                               None,
+                               step_size = 'armijo',
+                               threshold = 1e-6, 
+                               max_iter = 1e3, 
+                               fd_method = 'forward')
+
+        previous_cost = c
+        inequality_cost = [const(x) for const in inequality_constraints]
+        equality_cost = [const(x) for const in equality_constraints]
+        c = equality_cost + inequality_cost 
+
+        if norm(c, np.inf) > 0.25 * norm(previous_cost, np.inf):
+            for i in range(num_c):
+                if np.abs(c[i]) > 0.25 * norm(previous_cost, np.inf):
+                    sigma[i] *= 10
+            continue
+        lambd = lambd - sigma * c
+
+        minimum = cost_function(x)
+        x_history.append(x), V_history.append(minimum)
+        j += 1
+        # if log:
+        #     print(f'x = {x}, V(x) = {minimum:.5f}')
+            
+    if track_history:
+        return x, minimum, x_history, V_history
+    else:
+        return x, cost_function(x)
+    
