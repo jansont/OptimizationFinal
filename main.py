@@ -20,176 +20,214 @@ if __name__ == '__main__':
     
     #____________PROBLEM A________________________
 
-    print('\n---- TESTING PROBLEM A ----\n')
+    # print('\n---- TESTING PROBLEM A ----\n')
     
-    x0 = np.zeros((6,1))
+    # x0 = np.zeros((6,1))
 
-    # test steepest descent
-    x, minimum =  steepest_descent(x0,
-                                V_a,
-                                gradV_a,
-                                step_size = 1e-4,
-                                threshold = 1e-8, 
-                                log = False, 
-                                h = 1e-8, 
-                                max_iter = 1e12, 
-                                fd_method = 'central', 
-                                track_history = False)
-    print(f'Steepest descent:\n x={x.flatten()}, V(x)={minimum:.5f}\n')
+    # # test steepest descent
+    # x, minimum =  steepest_descent(x0,
+    #                             V_a,
+    #                             gradV_a,
+    #                             step_size = 1e-4,
+    #                             threshold = 1e-8, 
+    #                             log = False, 
+    #                             h = 1e-8, 
+    #                             max_iter = 1e12, 
+    #                             fd_method = 'central', 
+    #                             track_history = False)
+    # print(f'Steepest descent:\n x={x.flatten()}, V(x)={minimum:.5f}\n')
 
-    # test conjugate gradient descent
-    x, minimum =  conjugate_gradient(x0,
-                                V_a,
-                                gradV_a,
-                                step_size = 1e-4,
-                                threshold = 1e-8, 
-                                log = False, 
-                                h = 1e-8, 
-                                max_iter = 1e12, 
-                                fd_method = 'central', 
-                                track_history = False)
-    print(f'Conjugate descent:\n x={x.flatten()}, V(x)={minimum:.5f}\n')
+    # # test conjugate gradient descent
+    # x, minimum =  conjugate_gradient(x0,
+    #                             V_a,
+    #                             gradV_a,
+    #                             step_size = 1e-4,
+    #                             threshold = 1e-8, 
+    #                             log = False, 
+    #                             h = 1e-8, 
+    #                             max_iter = 1e12, 
+    #                             fd_method = 'central', 
+    #                             track_history = False)
+    # print(f'Conjugate descent:\n x={x.flatten()}, V(x)={minimum:.5f}\n')
 
-    # test secant function
-    x, minimum =  secant(x0,
-                        V_a,
-                        gradV_a,
-                        step_size = 1e-4,
-                        threshold = 1e-6, 
-                        log = False, 
-                        h = 1e-8, 
-                        max_iter = 1e7, 
-                        fd_method = 'central', 
-                        track_history = False)
-    print(f'Secant Method:\n x={x.flatten()}, V(x)={minimum:.5f}\n')
+    # # test secant function
+    # x, minimum =  secant(x0,
+    #                     V_a,
+    #                     gradV_a,
+    #                     step_size = 1e-4,
+    #                     threshold = 1e-6, 
+    #                     log = False, 
+    #                     h = 1e-8, 
+    #                     max_iter = 1e7, 
+    #                     fd_method = 'central', 
+    #                     track_history = False)
+    # print(f'Secant Method:\n x={x.flatten()}, V(x)={minimum:.5f}\n')
 
-    #____________PROBLEM B________________________
+    # #____________PROBLEM B________________________
 
-    print('\n---- TESTING PROBLEM B ----\n')
-    x0 = np.ones((2,1))
+    # print('\n---- TESTING PROBLEM B ----\n')
+    # x0 = np.ones((2,1))
 
-    # test steepest descent
-    x, minimum =  steepest_descent(x0,
-                                V_b,
-                                gradV_b,
-                                step_size = 1e-4,
-                                threshold = 1e-8, 
-                                log = False, 
-                                h = 1e-8, 
-                                max_iter = 1e12, 
-                                fd_method = 'central', 
-                                track_history = False)
-    print(f'Steepest descent:\n x={x.flatten()}, V(x)={minimum:.5f}\n')
+    # # test steepest descent
+    # x, minimum =  steepest_descent(x0,
+    #                             V_b,
+    #                             gradV_b,
+    #                             step_size = 1e-4,
+    #                             threshold = 1e-8, 
+    #                             log = False, 
+    #                             h = 1e-8, 
+    #                             max_iter = 1e12, 
+    #                             fd_method = 'central', 
+    #                             track_history = False)
+    # print(f'Steepest descent:\n x={x.flatten()}, V(x)={minimum:.5f}\n')
 
-    # test conjugate gradient descent
-    x, minimum =  conjugate_gradient(x0,
-                                V_b,
-                                gradV_b,
-                                step_size = 1e-4,
-                                threshold = 1e-8, 
-                                log = False, 
-                                h = 1e-8, 
-                                max_iter = 1e12, 
-                                fd_method = 'central', 
-                                track_history = False)
-    print(f'Conjugate descent:\n x={x.flatten()}, V(x)={minimum:.5f}\n')
+    # # test conjugate gradient descent
+    # x, minimum =  conjugate_gradient(x0,
+    #                             V_b,
+    #                             gradV_b,
+    #                             step_size = 1e-4,
+    #                             threshold = 1e-8, 
+    #                             log = False, 
+    #                             h = 1e-8, 
+    #                             max_iter = 1e12, 
+    #                             fd_method = 'central', 
+    #                             track_history = False)
+    # print(f'Conjugate descent:\n x={x.flatten()}, V(x)={minimum:.5f}\n')
 
-    # test secant function
-    x, minimum =  secant(x0,
-                        V_b,
-                        gradV_b,
-                        step_size = 1e-4,
-                        threshold = 1e-4, 
-                        log = False, 
-                        h = 1e-8, 
-                        max_iter = 1e7, 
-                        fd_method = 'central', 
-                        track_history = False)
-    print(f'Secant Method:\n x={x.flatten()}, V(x)={minimum:.5f}\n')
+    # # test secant function
+    # x, minimum =  secant(x0,
+    #                     V_b,
+    #                     gradV_b,
+    #                     step_size = 1e-4,
+    #                     threshold = 1e-4, 
+    #                     log = False, 
+    #                     h = 1e-8, 
+    #                     max_iter = 1e7, 
+    #                     fd_method = 'central', 
+    #                     track_history = False)
+    # print(f'Secant Method:\n x={x.flatten()}, V(x)={minimum:.5f}\n')
 
-    #____________PROBLEM C________________________
+    # #____________PROBLEM C________________________
 
-    print('\n---- TESTING PROBLEM C ----\n')
-    x0 = np.zeros((2,1))
+    # print('\n---- TESTING PROBLEM C ----\n')
+    # x0 = np.zeros((2,1))
 
-    # test steepest descent
-    x, minimum =  steepest_descent(x0,
-                                V_c,
-                                gradV_c,
-                                step_size = 1e-4,
-                                threshold = 1e-6, 
-                                log = False, 
-                                h = 1e-8, 
-                                max_iter = 1e12, 
-                                fd_method = 'central', 
-                                track_history = False)
-    print(f'Steepest descent:\n x={x.flatten()}, V(x)={minimum:.5f}\n')
+    # # test steepest descent
+    # x, minimum =  steepest_descent(x0,
+    #                             V_c,
+    #                             gradV_c,
+    #                             step_size = 1e-4,
+    #                             threshold = 1e-6, 
+    #                             log = False, 
+    #                             h = 1e-8, 
+    #                             max_iter = 1e12, 
+    #                             fd_method = 'central', 
+    #                             track_history = False)
+    # print(f'Steepest descent:\n x={x.flatten()}, V(x)={minimum:.5f}\n')
 
-    # test conjugate gradient descent
-    x, minimum =  conjugate_gradient(x0,
-                                V_c,
-                                gradV_c,
-                                step_size = 1e-4,
-                                threshold = 1e-6, 
-                                log = False, 
-                                h = 1e-8, 
-                                max_iter = 1e12, 
-                                fd_method = 'central', 
-                                track_history = False)
-    print(f'Conjugate descent:\n x={x.flatten()}, V(x)={minimum:.5f}\n')
+    # # test conjugate gradient descent
+    # x, minimum =  conjugate_gradient(x0,
+    #                             V_c,
+    #                             gradV_c,
+    #                             step_size = 1e-4,
+    #                             threshold = 1e-6, 
+    #                             log = False, 
+    #                             h = 1e-8, 
+    #                             max_iter = 1e12, 
+    #                             fd_method = 'central', 
+    #                             track_history = False)
+    # print(f'Conjugate descent:\n x={x.flatten()}, V(x)={minimum:.5f}\n')
 
-    # test secant function
-    x, minimum =  secant(x0,
-                        V_c,
-                        gradV_c,
-                        step_size = 1e-4,
-                        threshold = 1e-4, 
-                        log = False, 
-                        h = 1e-8, 
-                        max_iter = 1e7, 
-                        fd_method = 'central', 
-                        track_history = False)
-    print(f'Secant Method:\n x={x.flatten()}, V(x)={minimum:.5f}\n')
+    # # test secant function
+    # x, minimum =  secant(x0,
+    #                     V_c,
+    #                     gradV_c,
+    #                     step_size = 1e-4,
+    #                     threshold = 1e-4, 
+    #                     log = False, 
+    #                     h = 1e-8, 
+    #                     max_iter = 1e7, 
+    #                     fd_method = 'central', 
+    #                     track_history = False)
+    # print(f'Secant Method:\n x={x.flatten()}, V(x)={minimum:.5f}\n')
 
     #____________CONSTRAINED PROBLEM 1________________________
 
-    print('\n---- TESTING CONSTRAINED PROBLEM 1 ----\n')
-    x0 = np.array([[0.1],[0.7]])
+    # print('\n---- TESTING CONSTRAINED PROBLEM 1 ----\n')
+    # x0 = np.array([[0.1],[0.7]])
 
     # test penalty function
-    x, minimum =  penalty_fn(x0,
-                                V_1,
-                                gradient_function=None,
-                                ecp=h2_1,
-                                icp=[h1_1],
-                                step_size = 1e-4,
-                                threshold = 1e-3, 
-                                log = False, 
-                                h = 1e-5, 
-                                max_iter = 1e5, 
-                                fd_method = 'central', 
-                                track_history = False)
-    print(f'Penalty function:\n x={x.flatten()}, V(x)={minimum:.5f}\n')
+    # x, minimum =  penalty_fn(x0,
+    #                             V_1,
+    #                             gradient_function=None,
+    #                             ecp=h2_1,
+    #                             icp=[h1_1],
+    #                             step_size = 1e-4,
+    #                             threshold = 1e-3, 
+    #                             log = False, 
+    #                             h = 1e-5, 
+    #                             max_iter = 1e5, 
+    #                             fd_method = 'central', 
+    #                             track_history = False)
+    # print(f'Penalty function:\n x={x.flatten()}, V(x)={minimum:.5f}\n')
+
+    x0 = np.array([[0.6],[0.6]])
+
+    # test barrier function
+    # x, minimum =  barrier_fn(x0,
+    #                             V_1,
+    #                             gradient_function=None,
+    #                             mode='inv',
+    #                             ecp=h2_1,
+    #                             icp=[h1_1],
+    #                             step_size = 1e-4,
+    #                             threshold = 1e-3,
+    #                             conv_threshold = 1e-6,  
+    #                             log = True, 
+    #                             h = 1e-5, 
+    #                             max_iter = 1e5, 
+    #                             fd_method = 'central', 
+    #                             track_history = False)
+    # print(f'Barrier function:\n x={x.flatten()}, V(x)={minimum:.5f}\n')
 
     #____________CONSTRAINED PROBLEM 2________________________
 
     print('\n---- TESTING CONSTRAINED PROBLEM 2 ----\n')
-    x0 = np.array([[1.],[-1.]])
+    # x0 = np.array([[1.],[-1.]])
 
-    # test penalty function
-    x, minimum =  penalty_fn(x0,
+    # # test penalty function
+    # x, minimum =  penalty_fn(x0,
+    #                             V_2,
+    #                             gradient_function=None,
+    #                             ecp=None,
+    #                             icp=[h1_2,h2_2],
+    #                             step_size = 1e-4,
+    #                             threshold = 1e-3,
+    #                             log = False, 
+    #                             h = 1e-7, 
+    #                             max_iter = 1e5, 
+    #                             fd_method = 'central', 
+    #                             track_history = False)
+    # print(f'Penalty function:\n x={x.flatten()}, V(x)={minimum:.5f}\n')
+
+    x0 = np.array([[0.5],[0.5]])
+
+    # test barrier function
+    x, minimum =  barrier_fn(x0,
                                 V_2,
                                 gradient_function=None,
+                                mode='inv',
                                 ecp=None,
                                 icp=[h1_2,h2_2],
                                 step_size = 1e-4,
-                                threshold = 1e-3, 
-                                log = False, 
-                                h = 1e-7, 
+                                threshold = 1e-7,
+                                conv_threshold = 1e-6, 
+                                log = True, 
+                                h = 1e-5, 
                                 max_iter = 1e5, 
                                 fd_method = 'central', 
                                 track_history = False)
-    print(f'Penalty function:\n x={x.flatten()}, V(x)={minimum:.5f}\n')
+    print(f'Barrier function:\n x={x.flatten()}, V(x)={minimum:.5f}\n')
 
     #____________CONSTRAINED PROBLEM 3________________________
 

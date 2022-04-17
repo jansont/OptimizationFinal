@@ -506,7 +506,63 @@ def penalty_fn(x0,
             break
     return x, cost_function(x).item()
 
+def barrier_fn(x0,
+               cost_function,
+               gradient_function,
+               mode='inv',
+               step_size='armijo',
+               ecp=None,
+               icp=None,
+               threshold=1e-6,
+               conv_threshold=1e-4,
+               log = False, 
+               h = 1e-8, 
+               max_iter = 1e12, 
+               fd_method = 'central', 
+               track_history = False):
+    
+    def phi(cost_function, sigma, r, mode, ecp, icp, x):
+        cost = cost_function(x)
+        if ecp is not None:
+            cost = cost + 0.5*sigma*norm(ecp(x))**2
+        if icp is not None:
+            for eq in icp:
+                if mode == 'inv':
+                    cost += r*np.reciprocal(eq(x))
+                else:
+                    cost += r*np.log(eq(x))
+        return cost
+    
+    def cost_norm(x):
+        cost = 0
+        if ecp is not None:
+            cost = cost + norm(ecp(x))**2
+        if icp is not None:
+            for eq in icp:
+                cost += norm(eq(x))**2#norm(np.minimum(eq(x),np.zeros_like(eq(x))))**2
+        return np.sqrt(cost)
 
+    sigma = 1
+    r = 1
+    x = x0
+
+    while cost_norm(x) > threshold:
+        x, _ = steepest_descent(x0,
+                             partial(phi, cost_function, sigma, r, mode, ecp, icp),
+                             gradient_function,
+                             step_size,
+                             conv_threshold,
+                             log,
+                             h,
+                             max_iter,
+                             fd_method,
+                             track_history)
+                            
+        sigma *= 10
+        r /= 10
+        if sigma >= 1e4 or r<= 1e-5:
+            break
+    return x, cost_function(x).item() 
 
 
 
