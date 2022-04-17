@@ -478,5 +478,5 @@ def penalty_fn(x0, cost_function, gradient_function, ecp=None, icp=None, thresho
     x = x0
 
     while cost_norm(x) > threshold:
-        x = gradient_descent(x, phi(cost_function(x), sigma, x, ecp, icp), gradient_function, threshold, log=False)
+        x = steepest_descent(x, phi(cost_function(x), sigma, x, ecp, icp), gradient_function, threshold, log=False)
     return x
