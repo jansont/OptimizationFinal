@@ -273,6 +273,21 @@ class Finite_Difference:
         else: 
             raise ValueError("Method must be 'central' or 'forward'")
 
+    def hessian(self, x):
+        n = np.max(np.shape(x))
+        I = np.eye(n)
+        H = np.zeros_like(I)
+        f = self.function
+        h = self.h
+        for i in range(n):
+            for j in range(n):
+                hess = f(x + h * I[:, [i]] + h * I[:, [j]]) \
+                        -  f(x + h * I[:, [i]]) \
+                        -  f(x + h * I[:, [j]]) \
+                        + f(x)
+                hess /=  h**2
+                H[i, j] =  hess
+        return 0.5 * (H + H.T)
 
 
 def cone_condition(g, s, theta=89):
@@ -644,4 +659,10 @@ def augmented_lagrangian(x0,
         return x, minimum, x_history, V_history
     else:
         return x, cost_function(x)
-    
+
+
+
+
+
+
+
