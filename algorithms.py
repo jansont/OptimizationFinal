@@ -503,6 +503,7 @@ def penalty_fn(x0,
                icp=None,
                sigma_max=1e5,
                threshold=1e-6,
+               conv_threshold=1e-3,
                log = False, 
                h = 1e-8, 
                max_iter = 1e12, 
@@ -538,14 +539,14 @@ def penalty_fn(x0,
         # print(sigma)
         x, _ = steepest_descent(x0,
                              partial(phi, cost_function, sigma, ecp, icp),
-                             gradient_function = None,
-                             step_size =  step_size,
-                             threshold = 1e-5,
-                             log = False,
-                             h = h,
-                             max_iter = 1e3,
-                             fd_method = 'central',
-                             track_history = False)
+                             gradient_function=gradient_function,
+                             step_size=step_size,
+                             threshold=conv_threshold,
+                             log=log,
+                             h=h,
+                             max_iter = max_iter,
+                             fd_method = fd_method,
+                             track_history = track_history)
         sigma *= 10
         if sigma >= sigma_max:
             break
@@ -589,7 +590,7 @@ def barrier_fn(x0,
             cost = cost + norm(ecp(x))**2
         if icp is not None:
             for eq in icp:
-                cost += norm(eq(x))**2#norm(np.minimum(eq(x),np.zeros_like(eq(x))))**2
+                cost += norm(eq(x))**2
         return np.sqrt(cost)
 
     sigma = 1
@@ -601,14 +602,14 @@ def barrier_fn(x0,
     while cost_norm(x) > threshold:
         x, _ = steepest_descent(x0,
                              partial(phi, cost_function, sigma, r, mode, ecp, icp),
-                             gradient_function = None,
+                             gradient_function = gradient_function,
                              step_size = step_size,
-                             threshold = 1e-5,
-                             log = False,
+                             threshold = conv_threshold,
+                             log = log,
                              h = h,
-                             max_iter = 1e3,
-                             fd_method = 'central',
-                             track_history = False)
+                             max_iter = max_iter,
+                             fd_method = fd_method,
+                             track_history = track_history)
                             
         sigma *= 10
         r /= 10
