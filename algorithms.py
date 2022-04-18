@@ -1,4 +1,5 @@
 from multiprocessing.sharedctypes import Value
+from tkinter import NONE
 import numpy as np
 from numpy.linalg import norm, eig
 from functools import partial
@@ -7,7 +8,7 @@ from functools import partial
 
 def steepest_descent(x0,
                      cost_function,
-                     gradient_function,
+                     gradient_function = None,
                      step_size = 'armijo',
                      threshold = 1e-4, 
                      log = False, 
@@ -26,11 +27,12 @@ def steepest_descent(x0,
             Cost function to minimize. Rn -> R. 
         gradient_function :: Python function, or None
             Gradient of cost_function. Rn -> Rn
-            If None, finite difference estimation of gradient is used. 
+            If None, finite difference estimation of gradient is used.
+            Default is None. 
         step_size :: float or String
             Step size to use during gradient descent. 
             If 'armijo', Armijo step size selection is used. 
-            Default: 'armijo
+            Default: 'armijo'
         threshold :: float
             Threshold at which to stop minimization. Values 
             should be close to 0. Default: 1e-4
@@ -59,6 +61,10 @@ def steepest_descent(x0,
             List of points visisted. (if track_history = True)
         V_history :: list
             List of costs visisted. (if track_history = True)
+    -----------------------------------------------------------
+    Args examples: 
+    x0 = np.zeros((2,1))
+    cost_function = lambda x: x[0]**2 + x[1]**2
     '''
 
     #if no gradient function available, use finite difference appx
@@ -66,13 +72,13 @@ def steepest_descent(x0,
         fd = Finite_Difference(cost_function, fd_method, h)
         gradient_function = fd.estimate_gradient
 
-    x_history, V_history = [],[]
     #initialize iterator, x, and gradient
     i = 0
     x = x0
     gradient = gradient_function(x)
     minimum = cost_function(x)
 
+    x_history, V_history = [x0],[minimum]
     #iterate until near zero gradient or max iterations reached
     while norm(gradient) >= threshold and i <= max_iter: 
 
@@ -111,8 +117,8 @@ def steepest_descent(x0,
 
 def conjugate_gradient(x0,
                      cost_function,
-                     gradient_function,
-                     step_size,
+                     gradient_function = None,
+                     step_size = 'armijo',
                      threshold = 1e-8, 
                      log = False, 
                      h = 1e-8, 
@@ -134,7 +140,7 @@ def conjugate_gradient(x0,
         step_size :: float or String
             Step size to use during gradient descent. 
             If 'armijo', Armijo step size selection is used. 
-            Default: 'armijo
+            Default: 'armijo'
         threshold :: float
             Threshold at which to stop minimization. Values 
             should be close to 0. Default: 1e-8
@@ -163,17 +169,22 @@ def conjugate_gradient(x0,
             List of points visisted. (if track_history = True)
         V_history :: list
             List of costs visisted. (if track_history = True)
+    -----------------------------------------------------------
+    Args examples: 
+    x0 = np.zeros((2,1))
+    cost_function = lambda x: x[0]**2 + x[1]**2
+
     '''
     #if no gradient function available, use finite difference appx
     if gradient_function == None: 
         fd = Finite_Difference(cost_function, fd_method, h)
         gradient_function = fd.estimate_gradient
 
-    x_history, V_history = [],[]    
+    minimum = cost_function(x0)
+    x_history, V_history = [x0],[minimum]
     i = 0
     prev_gradient = gradient_function(x0)
     search_direction = prev_gradient * -1
-    minimum = cost_function(x0)
     while norm(prev_gradient) >= threshold and i <= max_iter: 
 
         #determine step size
@@ -200,7 +211,7 @@ def conjugate_gradient(x0,
         prev_gradient = next_gradient
         x0 = x1
         minimum = cost_function(x0).item()
-
+        i+=1
         #track results
         if log and i%1e4 == 0: 
             print(f'x = {x0}, V(x) = {minimum:.5f}')
@@ -216,7 +227,7 @@ def conjugate_gradient(x0,
 
 
 class Finite_Difference:
-    def __init__(self, function, method, h = 1e-8):
+    def __init__(self, function, method = 'forward', h = 1e-8):
         '''
         Args: 
             function: cost function Rn -> R
@@ -274,6 +285,9 @@ class Finite_Difference:
             raise ValueError("Method must be 'central' or 'forward'")
 
     def hessian(self, x):
+        '''
+        Returns hessian matrix of self.f
+        '''
         n = np.max(np.shape(x))
         I = np.eye(n)
         H = np.zeros_like(I)
@@ -298,7 +312,7 @@ def cone_condition(g, s, theta=89):
 
 def secant(x0,
             cost_function,
-            gradient_function,
+            gradient_function = None,
             H = None,
             step_size = 'armijo',
             threshold = 1e-8, 
@@ -317,7 +331,7 @@ def secant(x0,
         cost_function :: Python function
             Cost function to minimize. Rn -> R. 
         gradient_function :: Python function, or None
-            Gradient of cost_function. Rn -> Rn
+            Gradient of cost_function. Rn -> Rn. Default is None.
             If None, finite difference estimation of gradient is used. 
         H :: np.array (shape: len(x0) x len(x0))
             Estimate for C inverse. Default is None.
@@ -354,6 +368,10 @@ def secant(x0,
             List of points visisted. (if track_history = True)
         V_history :: list
             List of costs visisted. (if track_history = True)
+    -----------------------------------------------------------
+    Args examples: 
+    x0 = np.zeros((2,1))
+    cost_function = lambda x: x[0]**2 + x[1]**2
     '''
 
     if H == None:
@@ -367,8 +385,8 @@ def secant(x0,
         gradient_function = fd.estimate_gradient
 
     j=0
-    x_history, V_history = [],[]
     minimum = cost_function(x0)
+    x_history, V_history = [x0],[minimum]
     while True:
         gradient_x0 = gradient_function(x0)
         s = -(H @ gradient_x0)
@@ -440,6 +458,12 @@ def armijo(x,
     Returns: 
         w :: float
             Optimal step size at x in direction search_dir. 
+        -----------------------------------------------------------
+        Args examples: 
+        x0 = np.zeros((2,1))
+        cost_function = lambda x: x[0]**2 + x[1]**2
+        gradient_function = lambda x: [2*x[0]**2 ,  2*x[1]]
+        search_dir = np.zeros((2,1))
     '''
     
     def v_bar(w):
@@ -484,7 +508,8 @@ def penalty_fn(x0,
                max_iter = 1e12, 
                fd_method = 'central', 
                track_history = False):
-    
+    x_hist, V_hist = [], []
+
     def phi(cost_function, sigma, ecp, icp, x):
         cost = cost_function(x)
         if ecp is not None:
@@ -505,23 +530,31 @@ def penalty_fn(x0,
 
     sigma = 1
     x = x0
+    minimum = cost_function(x)
+    x_hist.append(x)
+    V_hist.append(minimum)
 
     while cost_norm(x) > threshold:
         # print(sigma)
         x, _ = steepest_descent(x0,
                              partial(phi, cost_function, sigma, ecp, icp),
-                             gradient_function,
-                             step_size,
-                             1e-3,
-                             log,
-                             h,
-                             max_iter,
-                             fd_method,
-                             track_history)
+                             gradient_function = None,
+                             step_size =  step_size,
+                             threshold = 1e-5,
+                             log = False,
+                             h = h,
+                             max_iter = 1e3,
+                             fd_method = 'central',
+                             track_history = False)
         sigma *= 10
         if sigma >= sigma_max:
             break
-    return x, cost_function(x).item()
+        x_hist.append(x)
+        V_hist.append(minimum)
+    if track_history:
+        return x, cost_function(x).item(), x_hist, V_hist
+    else: 
+        return x, cost_function(x).item()
 
 def barrier_fn(x0,
                cost_function,
@@ -562,24 +595,32 @@ def barrier_fn(x0,
     sigma = 1
     r = 1
     x = x0
+    minimum = cost_function(x)
+    x_hist, V_hist = [x] , [minimum]
 
     while cost_norm(x) > threshold:
         x, _ = steepest_descent(x0,
                              partial(phi, cost_function, sigma, r, mode, ecp, icp),
-                             gradient_function,
-                             step_size,
-                             conv_threshold,
-                             log,
-                             h,
-                             max_iter,
-                             fd_method,
-                             track_history)
+                             gradient_function = None,
+                             step_size = step_size,
+                             threshold = 1e-5,
+                             log = False,
+                             h = h,
+                             max_iter = 1e3,
+                             fd_method = 'central',
+                             track_history = False)
                             
         sigma *= 10
         r /= 10
         if sigma >= 1e4 or r<= 1e-5:
             break
-    return x, cost_function(x).item() 
+        minimum = cost_function(x)
+        x_hist.append(x)
+        V_hist.append(minimum)
+    if track_history:
+        return x, cost_function(x).item(), x_hist, V_hist
+    else: 
+        return x, cost_function(x).item() 
 
 
 
@@ -641,8 +682,8 @@ def augmented_lagrangian(x0,
                 cost = cost + p_i
 
             return cost
-
-    x_history, V_history = [],[]
+    minimum = cost_function(x0).item()
+    x_history, V_history = [x0],[minimum]
     num_ec = len(equality_constraints)
     num_ic = len(inequality_constraints)
     num_c = num_ec + num_ic
@@ -662,7 +703,7 @@ def augmented_lagrangian(x0,
                                None,
                                step_size = 'armijo',
                                threshold = 1e-6, 
-                               max_iter = 1e3, 
+                               max_iter = 1e4, 
                                fd_method = 'forward')
 
         previous_cost = c
@@ -677,16 +718,15 @@ def augmented_lagrangian(x0,
             continue
         lambd = lambd - sigma * c
 
-        minimum = cost_function(x)
+        minimum = cost_function(x).item()
         x_history.append(x), V_history.append(minimum)
         j += 1
-        # if log:
-        #     print(f'x = {x}, V(x) = {minimum:.5f}')
-            
+        if log:
+            print(f'x = {x}, V(x) = {minimum:.5f}')
     if track_history:
-        return x, minimum, x_history, V_history
+        return x, cost_function(x).item(), x_history, V_history
     else:
-        return x, cost_function(x)
+        return x, cost_function(x).item()
 
 
 
@@ -743,7 +783,6 @@ def lagrange_newton(x0,
             List of costs visisted. (if track_history = True)
     '''
 
-
     fd = Finite_Difference(cost_function, fd_method, h)
     if hessian is None: 
         hessian_ = fd.hessian
@@ -754,7 +793,8 @@ def lagrange_newton(x0,
     else: 
         gradV = gradient_function
 
-    x_history, V_history = [], []
+    minimum = cost_function(x0).item()
+    x_history, V_history = [x0], [minimum]
 
     num_ec = len(equality_constraints)
     num_ic = len(inequality_constraints)
@@ -809,7 +849,7 @@ def lagrange_newton(x0,
         x = x + solution[:x.shape[0], :]
         lambd = lambd + solution[x.shape[0]:, :]
 
-        minimum = cost_function(x)
+        minimum = cost_function(x).item()
         x_history.append(x), V_history.append(minimum)
         dx = x - x0
         
@@ -817,10 +857,13 @@ def lagrange_newton(x0,
         if log: 
             print(f'x = {x}, V(x) = {minimum:.5f}')
     
+    x_history.append(x), V_history.append(minimum)
     if track_history:
         return x, minimum, x_history, V_history
     else: 
         return x, minimum
+
+    
 
     
 
