@@ -5,6 +5,8 @@
 
 <code>algorithms.py</code>: Contains all optimization functions and helper algorithms.
 
+<code>cost_functions.py</code>: Contains all cost functions and contraint functions.
+
 <code>scipy_opt.py</code>: Contains example method calls for each problem using Scipy.
 
 <code>optimization_vis.ipynb</code>, <code>function_vis.ipynb</code>: Contains visualizations of optimations paths and cost functions.
