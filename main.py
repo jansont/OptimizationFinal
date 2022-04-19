@@ -1,20 +1,6 @@
 import numpy as np
-from algorithms import * #steepest_descent, conjugate_gradient, secant
-from cost_functions import * #V_a, gradV_a, V_b, gradV_b
-
-# class Problem():
-#     def __init__(self, cost_function, gradient_function=None, ecp=None, icp=None):
-#         self.V = cost_function
-#         self.grad = gradient_function if gradient_function is not None else self.gradient_approx
-#         self.ecp = ecp
-#         self.icp = icp
-    
-#     def gradient_approx(x0, cost_function, h):
-#         gradient = np.zeros_like(x0)
-#         perturbation = np.eye(len(x0))*h
-#         for i in range(len(x0)):
-#             gradient[i] = (cost_function(x0+perturbation[i])-cost_function(x0))/h
-#         return gradient
+from algorithms import *
+from cost_functions import *
 
 if __name__ == '__main__':
     
@@ -191,6 +177,27 @@ if __name__ == '__main__':
                                 track_history = False)
     print(f'Barrier function:\n x={x.flatten()}, V(x)={minimum:.5f}\n')
 
+    x0 = np.array([[0.1],[0.7]])
+    
+    # test augmented lagrangian
+    x, minimum = augmented_lagrangian(x0,
+                                        V_1, 
+                                        [h2_1], 
+                                        [h1_1],
+                                        log = False,
+                                        track_history = False)
+    print(f'Augmented Lagrangian function:\n x={x.flatten()}, V(x)={minimum:.5f}\n')
+
+    x0 = np.array([[0.1],[0.7]])
+    # test lagrange-newton
+    x, minimum = lagrange_newton(x0,
+                                V_1, 
+                                equality_constraints = [h2_1], 
+                                inequality_constraints = [h1_1],
+                                log = False,
+                                track_history = False)
+    print(f'Lagrange-Newton function:\n x={x.flatten()}, V(x)={minimum:.5f}\n')
+
     #____________CONSTRAINED PROBLEM 2________________________
 
     print('\n---- TESTING CONSTRAINED PROBLEM 2 ----\n')
@@ -230,6 +237,26 @@ if __name__ == '__main__':
                                 fd_method = 'central', 
                                 track_history = False)
     print(f'Barrier function:\n x={x.flatten()}, V(x)={minimum:.5f}\n')
+
+    x0 = np.array([[0.6],[0.6]])
+    # test augmented lagrangian
+    x, minimum = augmented_lagrangian(x0,
+                                        V_2, 
+                                        [], 
+                                        [h1_2, h2_2],
+                                        log = False,
+                                        track_history = False)
+    print(f'Augmented Lagrangian function:\n x={x.flatten()}, V(x)={minimum:.5f}\n')
+
+    x0 = np.array([[1.], [-0.9]])
+    # test lagrange-newton
+    x, minimum = lagrange_newton(x0,
+                                V_2, 
+                                equality_constraints = [], 
+                                inequality_constraints = [h1_2, h2_2],
+                                log = False,
+                                track_history = False)
+    print(f'Lagrange-Newton function:\n x={x.flatten()}, V(x)={minimum:.5f}\n')
 
     #____________CONSTRAINED PROBLEM 3________________________
 
@@ -272,3 +299,23 @@ if __name__ == '__main__':
                         track_history = False)
     V = np.log(x[0]) - x[1]
     print(f'Barrier function:\n x={x.flatten()}, V(x)={V.item():.5f}\n')
+
+    x0 = np.array([[0.1],[0.7]])
+    # test augmented lagrangian
+    x, minimum = augmented_lagrangian(x0,
+                                        V_3, 
+                                        [h2_3], 
+                                        [h1_3],
+                                        log = False,
+                                        track_history = False)
+    print(f'Augmented Lagrangian function:\n x={x.flatten()}, V(x)={minimum:.5f}\n')
+
+    x0 = np.array([[2.], [1.5]])
+    # test lagrange-newton
+    x, minimum = lagrange_newton(x0,
+                                V_3, 
+                                equality_constraints = [h2_3], 
+                                inequality_constraints = [h1_3],
+                                log = False,
+                                track_history = False)
+    print(f'Lagrange-Newton function:\n x={x.flatten()}, V(x)={minimum:.5f}\n')

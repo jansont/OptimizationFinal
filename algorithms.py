@@ -305,6 +305,14 @@ class Finite_Difference:
 
 
 def cone_condition(g, s, theta=89):
+    '''
+    Checks if a given search direction respects the cone condition.
+    Args: 
+        g :: np.array
+            Gradient at a point.
+        s :: np.array
+            Search direction
+    '''
     cos_phi = (-s.T @ g) / (np.linalg.norm(s) * np.linalg.norm(g))
     cos_theta = np.cos(theta * 2 * np.pi / 360)
 
@@ -509,6 +517,61 @@ def penalty_fn(x0,
                max_iter = 1e12, 
                fd_method = 'central', 
                track_history = False):
+    '''
+    Performs the penalty function method for constrained optimization. 
+    Args: 
+        x0 :: np.array
+            Initial point of minization. Shape (n,1)
+        cost_function :: Python function
+            Cost function to minimize. Rn -> R. 
+        gradient_function :: Python function, or None
+            Gradient of cost_function. Rn -> Rn
+            If None, finite difference estimation of gradient is used.
+            Default is None. 
+        step_size :: float or String
+            Step size to use during gradient descent. 
+            If 'armijo', Armijo step size selection is used. 
+            Default: 'armijo'
+        ecp :: Python function
+            Function of equality contraint.
+        icp :: List
+            List of inequality contraints as functions.
+        sigma_max :: float
+            Maximum value for sigma.
+        threshold :: float
+            Threshold at which to stop penalty function. Values 
+            should be close to 0. Default: 1e-4
+        conv_threshold :: float
+            Threshold at which to stop steepest descent. Values 
+            should be close to 0. Default: 1e-4
+        log :: bool
+            True to log optimization progress. Default: False
+        h :: float
+            Parameter for finite difference estimation. 
+            Default 1e-8
+        max_iter :: int
+            Maximum optimization iterations. Default: 1e6
+        fd_method :: string
+            Method for finite difference estimation. 
+            Options: 'central', 'forward'
+        track_history :: bool
+            True to track points visited and corresponding cost. 
+    Returns: 
+        x :: np.array
+            Point at which minimization is reached. Shape (n,1)
+        minimum :: float
+            Value of cost function at optimizer. 
+        x_history :: list
+            List of points visisted. (if track_history = True)
+        V_history :: list
+            List of costs visisted. (if track_history = True)
+    -----------------------------------------------------------
+    Args examples: 
+    x0 = np.zeros((2,1))
+    cost_function = lambda x: x[0]**3-x[1]
+    ecp = lambda x: x[0]**2 + x[1]**2 - 4
+    icp = [lambda x: x[0]-1]
+    '''
     x_hist, V_hist = [], []
 
     def phi(cost_function, sigma, ecp, icp, x):
@@ -571,6 +634,65 @@ def barrier_fn(x0,
                max_iter = 1e12, 
                fd_method = 'central', 
                track_history = False):
+    '''
+    Performs the barrier function method for constrained optimization. Equality
+    contraints are handled like in the penalty function.
+    Args: 
+        x0 :: np.array
+            Initial point of minization. Shape (n,1)
+        cost_function :: Python function
+            Cost function to minimize. Rn -> R. 
+        gradient_function :: Python function, or None
+            Gradient of cost_function. Rn -> Rn
+            If None, finite difference estimation of gradient is used.
+            Default is None.
+        mode :: String
+            Method to handle inequality contraints.
+            If 'inv', a reciprocal operation is used. Othewise
+            a log operation is used.
+            Default: 'inv'
+        step_size :: float or String
+            Step size to use during gradient descent. 
+            If 'armijo', Armijo step size selection is used. 
+            Default: 'armijo'
+        ecp :: Python function
+            Function of equality contraint.
+        icp :: List
+            List of inequality contraints as functions.
+        threshold :: float
+            Threshold at which to stop penalty function. Values 
+            should be close to 0. Default: 1e-4
+        conv_threshold :: float
+            Threshold at which to stop steepest descent. Values 
+            should be close to 0. Default: 1e-4
+        log :: bool
+            True to log optimization progress. Default: False
+        h :: float
+            Parameter for finite difference estimation. 
+            Default 1e-8
+        max_iter :: int
+            Maximum optimization iterations. Default: 1e6
+        fd_method :: string
+            Method for finite difference estimation. 
+            Options: 'central', 'forward'
+        track_history :: bool
+            True to track points visited and corresponding cost. 
+    Returns: 
+        x :: np.array
+            Point at which minimization is reached. Shape (n,1)
+        minimum :: float
+            Value of cost function at optimizer. 
+        x_history :: list
+            List of points visisted. (if track_history = True)
+        V_history :: list
+            List of costs visisted. (if track_history = True)
+    -----------------------------------------------------------
+    Args examples: 
+    x0 = np.zeros((2,1))
+    cost_function = lambda x: x[0]**3-x[1]
+    ecp = lambda x: x[0]**2 + x[1]**2 - 4
+    icp = [lambda x: x[0]-1]
+    '''
     
     def phi(cost_function, sigma, r, mode, ecp, icp, x):
         cost = cost_function(x)
